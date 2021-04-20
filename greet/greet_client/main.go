@@ -3,7 +3,7 @@ package main
 import (
 	"context"
 	"google.golang.org/grpc"
-	pb "grpc_tourist/greetpb"
+	pb "grpc_tourist/greet/greetpb"
 	"log"
 	"os"
 	"time"
