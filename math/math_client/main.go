@@ -6,6 +6,7 @@ import (
 	"fmt"
 	"google.golang.org/grpc"
 	pb "grpc_tourist/math/mathpb"
+	"io"
 	"log"
 )
 
@@ -17,11 +18,36 @@ func unaryCall(c pb.MathClient) {
 	}
 	resp, err := c.Sum(context.Background(), req)
 	if err != nil {
-		fmt.Printf("failed to call Sum: %v", err)
+		log.Printf("failed to call Sum: %v", err)
 	}
 
 	fmt.Printf("response:\n")
 	fmt.Printf(" - %v\n", resp.Result)
+}
+
+func serverSideStreamingCall(c pb.MathClient) {
+	fmt.Printf("--- gRPC Server-side Streaming RPC Call ---\n")
+	req := &pb.PrimeFactorsRequest{Num: 48}
+	stream, err := c.PrimeFactors(context.Background(), req)
+	if err != nil {
+		log.Fatalf("failed to call PrimeFactors: %v", err)
+	}
+
+	var rpcStatus error
+	fmt.Printf("response:\n")
+	for {
+		resp, err := stream.Recv()
+		if err != nil {
+			rpcStatus = err
+			break
+		}
+		fmt.Printf(" - %v\n", resp.Result)
+	}
+
+	if rpcStatus != io.EOF {
+		log.Fatalf("failed to finish server-side streaming: %v", rpcStatus)
+	}
+
 }
 
 func main() {
@@ -35,5 +61,10 @@ func main() {
 	defer conn.Close()
 
 	c := pb.NewMathClient(conn)
-	unaryCall(c)
+
+	// Contact the server and print out its response.
+	// 1 Unary RPC Call
+	// unaryCall(c)
+	// 2 Server-side Streaming RPC Call
+	serverSideStreamingCall(c)
 }

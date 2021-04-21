@@ -14,7 +14,30 @@ type server struct {
 }
 
 func (s *server) Sum(ctx context.Context, in *pb.SumRequest) (*pb.SumResponse, error) {
+	fmt.Printf("--- grpc Server-side Streaming RPC ---\n")
+	fmt.Printf("request received: %v\n", in)
 	return &pb.SumResponse{Result: in.FirstNum + in.SecondNum}, nil
+}
+
+func (s *server) PrimeFactors(in *pb.PrimeFactorsRequest, stream pb.Math_PrimeFactorsServer) error {
+	fmt.Printf("--- grpc Server-side Streaming RPC ---\n")
+	fmt.Printf("request received: %v\n", in)
+
+	num := in.Num
+	factor := int32(2)
+	for num > 1 {
+		if num%factor == 0 {
+			err := stream.Send(&pb.PrimeFactorsResponse{Result: factor})
+			if err != nil {
+				log.Fatalf("failed to send stream: %v", err)
+				return err
+			}
+			num = num / factor
+			continue
+		}
+		factor += 1
+	}
+	return nil
 }
 
 func main() {
