@@ -1,2 +1,1 @@
-# grpc_tourist
-learn grpc
+# grpc-go-tutorial
