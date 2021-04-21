@@ -6,6 +6,7 @@ import (
 	"fmt"
 	"google.golang.org/grpc"
 	pb "grpc_tourist/math/mathpb"
+	"io"
 	"log"
 	"net"
 )
@@ -38,6 +39,26 @@ func (s *server) PrimeFactors(in *pb.PrimeFactorsRequest, stream pb.Math_PrimeFa
 		factor += 1
 	}
 	return nil
+}
+
+func (s *server) Average(stream pb.Math_AverageServer) error {
+	var sum int32
+	count := 0
+	for {
+		num, err := stream.Recv()
+		if err == io.EOF {
+			fmt.Printf("Receiving client streaming data completed\n")
+			average := float32(sum) / float32(count)
+			return stream.SendAndClose(&pb.AverageResponse{Result: average})
+		}
+
+		fmt.Printf("request received: %v\n", num)
+		if err != nil {
+			log.Fatalf("Error while receiving client streaming data: %v", err)
+		}
+		sum += num.Num
+		count ++
+	}
 }
 
 func main() {

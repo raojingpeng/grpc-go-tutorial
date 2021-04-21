@@ -9,6 +9,7 @@ service Math {
   // Sum is unary RPC.
   rpc Sum(SumRequest) returns (SumResponse) {};
   rpc PrimeFactors(PrimeFactorsRequest) returns (stream PrimeFactorsResponse) {};
+  rpc Average(stream AverageRequest) returns (AverageResponse) {};
 }
 
 // The request message for Sum.
@@ -29,3 +30,12 @@ message PrimeFactorsRequest {
 message PrimeFactorsResponse {
   int32 result = 1;
 }
+
+message AverageRequest {
+  int32 num = 1;
+}
+
+message AverageResponse {
+  float result = 1;
+}
+
