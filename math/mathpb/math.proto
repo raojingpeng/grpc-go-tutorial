@@ -10,6 +10,7 @@ service Math {
   rpc Sum(SumRequest) returns (SumResponse) {};
   rpc PrimeFactors(PrimeFactorsRequest) returns (stream PrimeFactorsResponse) {};
   rpc Average(stream AverageRequest) returns (AverageResponse) {};
+  rpc Maximum(stream MaximumRequest) returns (stream MaximumResponse) {};
 }
 
 // The request message for Sum.
@@ -37,5 +38,13 @@ message AverageRequest {
 
 message AverageResponse {
   float result = 1;
+}
+
+message MaximumRequest {
+  int32 num = 1;
+}
+
+message MaximumResponse {
+  int32 result = 1;
 }
 

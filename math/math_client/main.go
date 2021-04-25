@@ -8,6 +8,7 @@ import (
 	pb "grpc_tourist/math/mathpb"
 	"io"
 	"log"
+	"time"
 )
 
 func unaryCall(c pb.MathClient) {
@@ -74,6 +75,40 @@ func clientSideStreamingCall(c pb.MathClient) {
 
 }
 
+func bidirectionalStreamingCall(c pb.MathClient) {
+	fmt.Printf("--- gRPC Birdirectional Streaming RPC Call ---\n")
+
+	stream, err := c.Maximum(context.Background())
+	if err != nil {
+		log.Fatalf("failed to call Maximum: %v", err)
+	}
+
+	go func() {
+		nums := []int32{1, 3, 5, 2, 0, 9, 100, 1, -1, 101}
+		for _, num := range nums {
+			if err := stream.Send(&pb.MaximumRequest{Num: num}); err != nil {
+				log.Fatalf("failed to send streaming: %v", err)
+			}
+			time.Sleep(time.Second)
+		}
+		stream.CloseSend()
+	}()
+
+	var rpcStatus error
+	fmt.Print("response:\n")
+	for {
+		resp, err := stream.Recv()
+		if err != nil {
+			rpcStatus = err
+			break
+		}
+		fmt.Printf(" - %v\n", resp.Result)
+	}
+	if rpcStatus != io.EOF {
+		log.Fatalf("failed to finish server streaming: %v", rpcStatus)
+	}
+}
+
 func main() {
 	addr := flag.String("addr", "localhost:50051", "the address to connect to")
 	flag.Parse()
@@ -92,5 +127,7 @@ func main() {
 	// 2 Server-side Streaming RPC Call
 	// serverSideStreamingCall(c)
 	// 3 Client-side Streaming RPC Call
-	clientSideStreamingCall(c)
+	// clientSideStreamingCall(c)
+	// 4 Bidirectional Streaming RPC Call
+	bidirectionalStreamingCall(c)
 }
